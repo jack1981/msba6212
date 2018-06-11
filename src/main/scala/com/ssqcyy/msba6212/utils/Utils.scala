@@ -19,7 +19,8 @@ object Utils {
     saveModel: Boolean = false,
     randomSampling: Boolean = false,
     negRate: Double = 1.0,
-    clusterParams:ClusterParams = ClusterParams(5,30,3))
+    dataFilePath: String = "/home/msba6212/data/pcard.csv",
+    clusterParams: ClusterParams = ClusterParams(5, 30, 3))
 
   val trainParser = new OptionParser[AppParams]("MSBA 6212 FINAL PROJECT") {
     head("AppParams:")
@@ -59,16 +60,19 @@ object Utils {
     opt[Double]("negRate")
       .text("negRate")
       .action((x, c) => c.copy(negRate = x))
-      opt[String]("clusterParams")
+    opt[String]("dataFilePath")
+      .text("dataFilePath")
+      .action((x, c) => c.copy(dataFilePath = x))
+    opt[String]("clusterParams")
       .text("ClusterParams")
       .action((x, c) => {
         val pArr = x.split(seperator).map(_.trim)
-        val p = ClusterParams(pArr(0).toInt, pArr(1).toInt,pArr(2).toInt)
+        val p = ClusterParams(pArr(0).toInt, pArr(1).toInt, pArr(2).toInt)
         c.copy(clusterParams = p)
-  })
-}
-    case class ClusterParams(
+      })
+  }
+  case class ClusterParams(
     numClusters: Int,
     numIterations: Int,
-    runTimes:Int)
+    runTimes: Int)
 }

@@ -35,7 +35,7 @@ object TrainPipeline {
       val runTimes = param.clusterParams.runTimes
       import spark.implicits._
 
-      val dataDF = DataPipeline.loadPublicCSV(spark)
+      val dataDF = DataPipeline.loadPublicCSV(spark,param)
 
       val trainingRawDF = dataDF
         .filter(s"date>=$trainingStart")

@@ -12,7 +12,6 @@ import scala.util.Random
 
 object DataPipeline {
 
-  private val csvPath = "/data/pcard.csv"
   val defaultPartition = 10
   private[ssqcyy] var negRate = 1.0
   private[ssqcyy] var randomSampling = false
@@ -31,12 +30,12 @@ object DataPipeline {
   /**
    * @return DataFrame ("uid", "mid", "date")
    */
-  private[ssqcyy] def loadPublicCSV(spark: SparkSession): DataFrame = {
+  private[ssqcyy] def loadPublicCSV(spark: SparkSession,param: AppParams): DataFrame = {
     val raw = spark.read
       .format("csv")
       .option("header", "true") //reading the headers
       .option("mode", "DROPMALFORMED")
-      .csv(csvPath)
+      .csv(param.dataFilePath)
 
     val dataDF = raw.select("Cardholder Last Name", "Cardholder First Initial", "Amount", "Vendor",
       "Transaction Date", "Merchant Category Code (MCC)")

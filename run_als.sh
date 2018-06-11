@@ -21,6 +21,7 @@ ml-6212.jar \
 --uOutput 100 \
 --maxEpoch 25 \
 --defaultPartition 10 \
+--dataFilePath "/home/msba6212/data/pcard.csv" \
 --negRate 0.2 \
 --randomSampling true \
 --debug true

@@ -16,6 +16,7 @@ object TrainPipeline {
   def main(args: Array[String]): Unit = {
 
     Logger.getLogger("org").setLevel(Level.WARN)
+     val st = System.nanoTime()
 
     Utils.trainParser.parse(args, Utils.AppParams()).foreach { param =>
       val spark = SparkSession.builder().appName("TrainWithALS")
@@ -103,7 +104,10 @@ object TrainPipeline {
         println("cluster : "+ clusterNumber + ":"+"Train and Evaluate End");
         clusterNumber += 1
       }
-
+      
+      
+      println("total time: " + (System.nanoTime() - st) / 1e9)
+      spark.stop()
     }
 
   }

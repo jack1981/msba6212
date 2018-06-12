@@ -15,16 +15,16 @@ MSBA 6212 requires docker container to run if you are working at a windows pc or
 ## Install Docker and Docker Toolbox
 ### Install the docker for window
 https://store.docker.com/editions/community/docker-ce-desktop-windows
-please use this docker account
+- please use this docker account
 username:msba6212
 password:hadoop123
-Get Docker CE for Windows (stable)
-Double-click Docker for Windows Installer to run the installer.
-When the installation finishes, Docker starts automatically. The whale  in the notification area indicates that Docker is running, and accessible from a terminal.
+- Get Docker CE for Windows (stable)
+- Double-click Docker for Windows Installer to run the installer.
+- When the installation finishes, Docker starts automatically. The whale  in the notification area indicates that Docker is running, and accessible from a terminal.
 ### Install the Docker Toolbox
-https://docs.docker.com/toolbox/toolbox_install_windows/
-After installation , click Kitematic (Alpha) shortcut
-Then click DOCKER-CLI on the left corner, you will enter a docker cli window
+- https://docs.docker.com/toolbox/toolbox_install_windows/
+- After installation , click Kitematic (Alpha) shortcut
+- Then click DOCKER-CLI on the left corner, you will enter a docker cli window
 
 # Create a standalone Spark environment
 MSBA 6212 requires a standalone spark envrionment to run Spark Mllib jobs

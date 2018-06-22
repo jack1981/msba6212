@@ -37,15 +37,16 @@ object TrainPipeline {
       import spark.implicits._
 
       val dataDF = DataPipeline.loadPublicCSV(spark,param)
-
-      val trainingRawDF = dataDF
+      val filterTrainingRawDF = dataDF
         .filter(s"date>=$trainingStart")
         .filter(s"date<=$trainingEnd")
-        .drop("date").groupBy("uid", "mid").count().withColumnRenamed("count", "label").cache()
-      val trainingDF = DataPipeline.mixNegativeAndCombineFeatures(trainingRawDF, param)
+        .drop("date").cache()
+
+      val trainingRawDF = filterTrainingRawDF.groupBy("uid", "mid").count().withColumnRenamed("count", "label").cache()
+      val trainingDF = DataPipeline.mixNegativeAndCombineFeatures(trainingRawDF, filterTrainingRawDF,param)
       val trainingCount = trainingDF.count()
 
-      val clusterTrainDF = DataPipeline.norm(trainingDF)
+      val clusterTrainDF = DataPipeline.normFeatures(trainingDF,param)
 
       println("Start Kmeans trainning , training records count: " + trainingCount + " numClusters is " + numClusters + " numIterations is " + numIterations + " runTimes is " + runTimes)
 
@@ -62,14 +63,16 @@ object TrainPipeline {
           clusterIndex += 1
         })
 
-      val validationRawDF = dataDF
+      val filterValidationRawDF= dataDF
         .filter(s"date>$validationStart")
         .filter(s"date<=$validationEnd")
-        .drop("date").groupBy("uid", "mid").count().withColumnRenamed("count", "label").cache()
+        .drop("date").cache()
+        
+      val validationRawDF = filterValidationRawDF.groupBy("uid", "mid").count().withColumnRenamed("count", "label").cache()
 
-      val validationDF = DataPipeline.mixNegativeAndCombineFeatures(validationRawDF, param)
+      val validationDF = DataPipeline.mixNegativeAndCombineFeatures(validationRawDF,filterValidationRawDF, param)
 
-      val clusterValidationDF = DataPipeline.norm(validationDF)
+      val clusterValidationDF = DataPipeline.normFeatures(validationDF,param)
 
       val idValidationFeaturesRDD = clusterValidationDF.rdd.map(s => (s.getDouble(0), Vectors.dense(s.getSeq[Float](3).toArray.map { x => x.asInstanceOf[Double] }))).cache()
       val clustersRDD = clusters.predict(idValidationFeaturesRDD.map(_._2))

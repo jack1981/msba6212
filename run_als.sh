@@ -18,8 +18,8 @@ ml-6212.jar \
 --trainingStart 20130530 \
 --trainingEnd 20140615 \
 --validationEnd 20140630 \
---uOutput 100 \
---maxEpoch 25 \
+--uOutput 50 \
+--maxEpoch 10 \
 --defaultPartition 10 \
 --dataFilePath "/home/msba6212/data/pcard.csv" \
 --negRate 0.2 \

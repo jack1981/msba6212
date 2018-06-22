@@ -18,7 +18,12 @@ ml-6212.jar \
 --trainingStart 20130530 \
 --trainingEnd 20140615 \
 --validationEnd 20140630 \
---uOutput 50 \
+--rank 10 \
+--brank 50 \
+--regParam 0.01 \
+--bregParam 0.20 \
+--alpha 0.01 \
+--balpha 0.15 \
 --maxEpoch 10 \
 --defaultPartition 10 \
 --dataFilePath "/home/msba6212/data/pcard.csv" \

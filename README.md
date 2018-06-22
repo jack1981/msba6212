@@ -83,6 +83,24 @@ root@driver:/home/msba6212# mv target/ml-6212-0.1-SNAPSHOT-jar-with-dependencies
 ```
 
 # Run the project and check the results
+## explain the parameters 
+```sh
+--trainingStart 20130530 # training start date 
+--trainingEnd 20140615  # training end date
+--validationEnd 20140630 # validation end date 
+--rank 10 # value of ALS rank parameter 
+--brank 50 # value of benchmark rank parameter 
+--regParam 0.01 # value of ALS regParam parameter 
+--bregParam 0.20 # value of benchmark regParam parameter 
+--alpha 0.01 # value of ALS alpha parameter 
+--balpha 0.15 # value of benchmark alpha parameter
+--maxEpoch 10 # value of ALS max iterations parameter 
+--defaultPartition 10 # spark shuffling partition
+--dataFilePath "/home/msba6212/data/pcard.csv" # the path of data source csv
+--negRate 0.2 # the rate to generate negtive sampling 
+--randomSampling true # Sampling mode
+--debug true # turn on debug or not 
+```
 ## execute the run script
 ```sh
 root@driver:/home/msba6212# ./run_als.sh
@@ -90,345 +108,148 @@ root@driver:/home/msba6212# ./run_als.sh
 ## the expected log
 ```sh
 Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
-18/06/12 05:54:12 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
-AppParams are AppParams(25,100,20130530,20140615,20140630,10,100,0.001,1.0E-7,true,false,true,0.2,/home/msba6212/data/pcard.csv,ClusterParams(5,30,3))
+18/06/22 18:56:42 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+AppParams are AppParams(10,200,20130530,20140615,20140630,10,100,0.001,1.0E-7,10,50,0.01,0.2,0.01,0.15,true,false,true,0.2,/home/msba6212/data/pcard.csv,ClusterParams(5,30,3))
 positive samples count: 67334
 ulimit count: 5178
 mlimit count: 435
 randomNegativeSamples
-combinedDF count: 80368
-+------+-----+-----+
-|   uid|  mid|label|
-+------+-----+-----+
-|2690.0|196.0|  0.0|
-|4691.0|250.0|  0.0|
-|3118.0|102.0|  0.0|
-|1079.0| 50.0|  0.0|
-| 609.0|390.0|  0.0|
-+------+-----+-----+
+combinedDF count: 80361
+18/06/22 18:57:59 WARN Executor: Managed memory leak detected; size = 17039360 bytes, TID = 252
++------+-----+-----+-----------+-----------+
+|   uid|  mid|label|totalVisits|totalAmount|
++------+-----+-----+-----------+-----------+
+|1717.0|342.0|  0.0|          0|        0.0|
+| 859.0|403.0|  0.0|          0|        0.0|
+|3862.0|278.0|  0.0|          0|        0.0|
+|2872.0|112.0|  0.0|          0|        0.0|
+|2260.0|392.0|  0.0|          0|        0.0|
++------+-----+-----+-----------+-----------+
 only showing top 5 rows
 
-Start Kmeans trainning , training records count: 80368 numClusters is 5 numIterations is 30 runTimes is 3
-18/06/12 05:54:49 WARN KMeans: The input data is not directly cached, which may hurt performance if its parent RDDs are also uncached.
-18/06/12 05:54:55 WARN BLAS: Failed to load implementation from: com.github.fommil.netlib.NativeSystemBLAS
-18/06/12 05:54:55 WARN BLAS: Failed to load implementation from: com.github.fommil.netlib.NativeRefBLAS
-18/06/12 05:55:10 WARN KMeans: The input data was not directly cached, which may hurt performance if its parent RDDs are also uncached.
+original features:
+18/06/22 18:58:07 WARN Executor: Managed memory leak detected; size = 17039360 bytes, TID = 386
++------+-----+-----+-----------+-----------+
+|   uid|  mid|label|totalVisits|totalAmount|
++------+-----+-----+-----------+-----------+
+|1717.0|342.0|  0.0|          0|        0.0|
+| 859.0|403.0|  0.0|          0|        0.0|
+|3862.0|278.0|  0.0|          0|        0.0|
+|2872.0|112.0|  0.0|          0|        0.0|
+|2260.0|392.0|  0.0|          0|        0.0|
++------+-----+-----+-----------+-----------+
+only showing top 5 rows
+
+featureCols are CAST(totalVisits AS DOUBLE),CAST(totalAmount AS DOUBLE)
+Start Kmeans trainning , training records count: 80361 numClusters is 5 numIterations is 30 runTimes is 3
+18/06/22 18:58:14 WARN KMeans: The input data is not directly cached, which may hurt performance if its parent RDDs are also uncached.
+18/06/22 18:58:18 WARN BLAS: Failed to load implementation from: com.github.fommil.netlib.NativeSystemBLAS
+18/06/22 18:58:18 WARN BLAS: Failed to load implementation from: com.github.fommil.netlib.NativeRefBLAS
+18/06/22 18:58:27 WARN KMeans: The input data was not directly cached, which may hurt performance if its parent RDDs are also uncached.
 Cluster Number:5
 Cluster Centers Information Overview:
 Center Point of Cluster 0:
-[1207.7139822632892,71.91784822898411]
+[1156.738076120122,71.39173491783096,-0.02212103008614722,-0.021208758409307197]
 Center Point of Cluster 1:
-[4380.669539881024,119.69952652664804]
+[333.59378661172383,72.26485678503616,0.15934356683714504,0.0992276658875982]
 Center Point of Cluster 2:
-[2146.782338871291,73.91550843622728]
+[3122.7409138528487,83.72721411878474,-0.10112104972586763,-0.06441488978332281]
 Center Point of Cluster 3:
-[351.71188870805236,72.78753003177555]
+[2077.924583492306,75.42369324685235,-0.06916197859695172,-0.048852429138457665]
 Center Point of Cluster 4:
-[3198.182203742204,86.96939708939709]
+[4342.994540491356,116.86646951774341,-0.13518378782099633,-0.05600590130375378]
 positive samples count: 8924
 ulimit count: 2824
 mlimit count: 260
 randomNegativeSamples
-combinedDF count: 10692
-+------+-----+-----+
-|   uid|  mid|label|
-+------+-----+-----+
-|1417.0| 76.0|  0.0|
-| 544.0|176.0|  0.0|
-|2308.0|197.0|  0.0|
-|1921.0|222.0|  0.0|
-|1041.0|211.0|  0.0|
-+------+-----+-----+
+combinedDF count: 10683
+18/06/22 18:58:37 WARN Executor: Managed memory leak detected; size = 17039360 bytes, TID = 1350
++------+-----+-----+-----------+-----------+
+|   uid|  mid|label|totalVisits|totalAmount|
++------+-----+-----+-----------+-----------+
+| 864.0| 15.0|  0.0|          0|        0.0|
+|2798.0| 83.0|  0.0|          0|        0.0|
+|2507.0|154.0|  0.0|          0|        0.0|
+| 102.0|107.0|  0.0|          0|        0.0|
+| 851.0|149.0|  0.0|          0|        0.0|
++------+-----+-----+-----------+-----------+
 only showing top 5 rows
 
+original features:
+18/06/22 18:58:38 WARN Executor: Managed memory leak detected; size = 17039360 bytes, TID = 1412
++------+-----+-----+-----------+-----------+
+|   uid|  mid|label|totalVisits|totalAmount|
++------+-----+-----+-----------+-----------+
+| 864.0| 15.0|  0.0|          0|        0.0|
+|2798.0| 83.0|  0.0|          0|        0.0|
+|2507.0|154.0|  0.0|          0|        0.0|
+| 102.0|107.0|  0.0|          0|        0.0|
+| 851.0|149.0|  0.0|          0|        0.0|
++------+-----+-----+-----------+-----------+
+only showing top 5 rows
+
+featureCols are CAST(totalVisits AS DOUBLE),CAST(totalAmount AS DOUBLE)
 Start ALS pipeline for cluster: 0
-Count of cluster: 0 is 797
+Count of cluster: 0 is 763
 Split data into Training and Validation for cluster : 0:
-cluster : 0: training records count: 16685
-cluster : 0: validation records count: 2640
-18/06/12 05:55:29 WARN LAPACK: Failed to load implementation from: com.github.fommil.netlib.NativeSystemLAPACK
-18/06/12 05:55:29 WARN LAPACK: Failed to load implementation from: com.github.fommil.netlib.NativeRefLAPACK
-positiveDF count: 2640
-validationDF count: 2640
-+------+-----+-----+-------+----------+
-|uid   |mid  |label|cluster|prediction|
-+------+-----+-----+-------+----------+
-|1623.0|173.0|1.0  |0      |0.0       |
-|1472.0|7.0  |1.0  |0      |1.0       |
-|1514.0|51.0 |1.0  |0      |0.0       |
-|996.0 |131.0|1.0  |0      |0.0       |
-|1097.0|10.0 |1.0  |0      |1.0       |
-|1045.0|21.0 |1.0  |0      |1.0       |
-|1603.0|2.0  |1.0  |0      |1.0       |
-|904.0 |6.0  |0.0  |0      |1.0       |
-|1304.0|124.0|1.0  |0      |1.0       |
-|1311.0|1.0  |1.0  |0      |1.0       |
-|1553.0|18.0 |1.0  |0      |1.0       |
-|941.0 |3.0  |1.0  |0      |1.0       |
-|998.0 |11.0 |1.0  |0      |1.0       |
-|827.0 |2.0  |1.0  |0      |1.0       |
-|941.0 |40.0 |1.0  |0      |1.0       |
-|1127.0|131.0|1.0  |0      |1.0       |
-|1183.0|21.0 |1.0  |0      |1.0       |
-|998.0 |73.0 |1.0  |0      |1.0       |
-|1611.0|5.0  |1.0  |0      |1.0       |
-|783.0 |49.0 |1.0  |0      |1.0       |
-+------+-----+-----+-------+----------+
+cluster : 0: training records count: 16307
+cluster : 0: validation records count: 2603
+18/06/22 18:59:00 WARN LAPACK: Failed to load implementation from: com.github.fommil.netlib.NativeSystemLAPACK
+18/06/22 18:59:00 WARN LAPACK: Failed to load implementation from: com.github.fommil.netlib.NativeRefLAPACK
+18/06/22 19:02:51 WARN Executor: Managed memory leak detected; size = 17039360 bytes, TID = 9928
+best rmse  = 15.647733318034643
+best rank = 50
+positiveDF count: 2603
+validationDF count: 2603
++------+-----+-----+-----------+------------------+-------+----------+
+|uid   |mid  |label|totalVisits|totalAmount       |cluster|prediction|
++------+-----+-----+-----------+------------------+-------+----------+
+|1191.0|114.0|1.0  |1          |203.0             |0      |1.0       |
+|1037.0|5.0  |1.0  |1          |108.0             |0      |1.0       |
+|1215.0|107.0|1.0  |0          |0.0               |0      |0.0       |
+|1066.0|7.0  |1.0  |1          |45.93             |0      |1.0       |
+|1362.0|77.0 |1.0  |1          |87.0              |0      |1.0       |
+|938.0 |21.0 |1.0  |3          |2961.82           |0      |1.0       |
+|1021.0|81.0 |1.0  |1          |228.86            |0      |1.0       |
+|791.0 |10.0 |1.0  |1          |-68.98            |0      |1.0       |
+|917.0 |2.0  |1.0  |6          |2190.4300000000003|0      |1.0       |
+|1389.0|23.0 |0.0  |2          |387.01            |0      |1.0       |
+|982.0 |5.0  |1.0  |1          |19.47             |0      |1.0       |
+|1232.0|13.0 |1.0  |1          |35.62             |0      |1.0       |
+|963.0 |1.0  |1.0  |1          |52.44             |0      |1.0       |
+|1257.0|27.0 |1.0  |1          |55.7              |0      |1.0       |
+|1364.0|45.0 |1.0  |1          |118.84            |0      |1.0       |
+|1371.0|229.0|1.0  |0          |0.0               |0      |1.0       |
+|883.0 |10.0 |1.0  |1          |123.3             |0      |1.0       |
+|748.0 |223.0|1.0  |0          |0.0               |0      |0.0       |
+|1272.0|1.0  |0.0  |2          |481.42            |0      |1.0       |
+|1198.0|5.0  |1.0  |1          |8.91              |0      |1.0       |
++------+-----+-----+-----------+------------------+-------+----------+
 only showing top 20 rows
 
-AUROC: 0.4281760320376608
-AUPRCs: 0.9118898551113896
-tp: 1870
-fp: 335
-fn: 421
-recall: 0.8162374508948058
-precision: 0.8480725623582767
+AUROC: 0.4415657248316914
+AUPRCs: 0.9168466116389519
+tp: 1912
+fp: 327
+fn: 351
+recall: 0.8448961555457357
+precision: 0.8539526574363555
 label distribution:
 +-----+-----+
 |label|count|
 +-----+-----+
-|  0.0|  349|
-|  1.0| 2291|
+|  0.0|  340|
+|  1.0| 2263|
 +-----+-----+
 
 prediction distribution:
 +----------+-----+
 |prediction|count|
 +----------+-----+
-|       0.0|  435|
-|       1.0| 2205|
+|       0.0|  364|
+|       1.0| 2239|
 +----------+-----+
 
 cluster : 0:Train and Evaluate End
-Start ALS pipeline for cluster: 1
-Count of cluster: 1 is 310
-Split data into Training and Validation for cluster : 1:
-cluster : 1: training records count: 1802
-cluster : 1: validation records count: 464
-positiveDF count: 464
-validationDF count: 464
-+------+-----+-----+-------+----------+
-|uid   |mid  |label|cluster|prediction|
-+------+-----+-----+-------+----------+
-|4496.0|34.0 |1.0  |1      |0.0       |
-|4177.0|42.0 |1.0  |1      |0.0       |
-|3960.0|7.0  |1.0  |1      |0.0       |
-|4013.0|10.0 |1.0  |1      |1.0       |
-|4817.0|6.0  |1.0  |1      |0.0       |
-|4869.0|95.0 |1.0  |1      |0.0       |
-|3910.0|120.0|1.0  |1      |0.0       |
-|4791.0|14.0 |1.0  |1      |0.0       |
-|4861.0|77.0 |1.0  |1      |0.0       |
-|4057.0|28.0 |1.0  |1      |1.0       |
-|3880.0|4.0  |1.0  |1      |1.0       |
-|3853.0|310.0|1.0  |1      |0.0       |
-|4505.0|34.0 |1.0  |1      |1.0       |
-|4098.0|23.0 |1.0  |1      |1.0       |
-|4173.0|19.0 |1.0  |1      |1.0       |
-|4265.0|54.0 |1.0  |1      |1.0       |
-|4706.0|38.0 |1.0  |1      |0.0       |
-|3807.0|65.0 |1.0  |1      |0.0       |
-|4689.0|38.0 |1.0  |1      |0.0       |
-|4335.0|164.0|1.0  |1      |0.0       |
-+------+-----+-----+-------+----------+
-only showing top 20 rows
-
-AUROC: 0.46624816907302785
-AUPRCs: 0.888252548525537
-tp: 158
-fp: 27
-fn: 247
-recall: 0.39012345679012345
-precision: 0.8540540540540541
-label distribution:
-+-----+-----+
-|label|count|
-+-----+-----+
-|  0.0|   59|
-|  1.0|  405|
-+-----+-----+
-
-prediction distribution:
-+----------+-----+
-|prediction|count|
-+----------+-----+
-|       0.0|  279|
-|       1.0|  185|
-+----------+-----+
-
-cluster : 1:Train and Evaluate End
-Start ALS pipeline for cluster: 2
-Count of cluster: 2 is 807
-Split data into Training and Validation for cluster : 2:
-cluster : 2: training records count: 12578
-cluster : 2: validation records count: 1999
-positiveDF count: 1999
-validationDF count: 1999
-+------+-----+-----+-------+----------+
-|uid   |mid  |label|cluster|prediction|
-+------+-----+-----+-------+----------+
-|2103.0|221.0|1.0  |2      |0.0       |
-|2502.0|7.0  |1.0  |2      |1.0       |
-|1886.0|75.0 |0.0  |2      |1.0       |
-|1726.0|51.0 |1.0  |2      |1.0       |
-|1693.0|26.0 |1.0  |2      |1.0       |
-|1927.0|20.0 |1.0  |2      |1.0       |
-|2022.0|81.0 |1.0  |2      |1.0       |
-|2357.0|124.0|1.0  |2      |0.0       |
-|1739.0|146.0|1.0  |2      |0.0       |
-|2100.0|58.0 |1.0  |2      |1.0       |
-|1893.0|89.0 |1.0  |2      |0.0       |
-|2271.0|26.0 |1.0  |2      |1.0       |
-|2051.0|24.0 |1.0  |2      |1.0       |
-|2070.0|31.0 |1.0  |2      |1.0       |
-|2648.0|24.0 |1.0  |2      |1.0       |
-|2368.0|26.0 |1.0  |2      |1.0       |
-|2184.0|45.0 |1.0  |2      |1.0       |
-|2610.0|12.0 |1.0  |2      |1.0       |
-|2176.0|191.0|1.0  |2      |0.0       |
-|2084.0|43.0 |1.0  |2      |1.0       |
-+------+-----+-----+-------+----------+
-only showing top 20 rows
-
-AUROC: 0.3858960545892976
-AUPRCs: 0.9140317464787537
-tp: 1260
-fp: 205
-fn: 520
-recall: 0.7078651685393258
-precision: 0.8600682593856656
-label distribution:
-+-----+-----+
-|label|count|
-+-----+-----+
-|  0.0|  219|
-|  1.0| 1780|
-+-----+-----+
-
-prediction distribution:
-+----------+-----+
-|prediction|count|
-+----------+-----+
-|       0.0|  534|
-|       1.0| 1465|
-+----------+-----+
-
-cluster : 2:Train and Evaluate End
-Start ALS pipeline for cluster: 3
-Count of cluster: 3 is 741
-Split data into Training and Validation for cluster : 3:
-cluster : 3: training records count: 24611
-cluster : 3: validation records count: 4605
-positiveDF count: 4605
-validationDF count: 4605
-+-----+-----+-----+-------+----------+
-|uid  |mid  |label|cluster|prediction|
-+-----+-----+-----+-------+----------+
-|297.0|28.0 |1.0  |3      |1.0       |
-|583.0|41.0 |1.0  |3      |1.0       |
-|60.0 |11.0 |1.0  |3      |1.0       |
-|274.0|14.0 |1.0  |3      |1.0       |
-|681.0|98.0 |1.0  |3      |1.0       |
-|720.0|6.0  |1.0  |3      |1.0       |
-|468.0|4.0  |0.0  |3      |1.0       |
-|103.0|34.0 |1.0  |3      |1.0       |
-|595.0|68.0 |1.0  |3      |1.0       |
-|539.0|3.0  |0.0  |3      |1.0       |
-|8.0  |140.0|1.0  |3      |1.0       |
-|529.0|29.0 |0.0  |3      |1.0       |
-|296.0|5.0  |1.0  |3      |1.0       |
-|114.0|223.0|1.0  |3      |1.0       |
-|179.0|2.0  |1.0  |3      |1.0       |
-|372.0|51.0 |1.0  |3      |1.0       |
-|750.0|14.0 |1.0  |3      |1.0       |
-|51.0 |134.0|1.0  |3      |0.0       |
-|593.0|261.0|1.0  |3      |1.0       |
-|282.0|125.0|1.0  |3      |1.0       |
-+-----+-----+-----+-------+----------+
-only showing top 20 rows
-
-AUROC: 0.4539551985037831
-AUPRCs: 0.9103154842032962
-tp: 3451
-fp: 665
-fn: 470
-recall: 0.8801326192297884
-precision: 0.8384353741496599
-label distribution:
-+-----+-----+
-|label|count|
-+-----+-----+
-|  0.0|  684|
-|  1.0| 3921|
-+-----+-----+
-
-prediction distribution:
-+----------+-----+
-|prediction|count|
-+----------+-----+
-|       0.0|  489|
-|       1.0| 4116|
-+----------+-----+
-
-cluster : 3:Train and Evaluate End
-Start ALS pipeline for cluster: 4
-Count of cluster: 4 is 511
-Split data into Training and Validation for cluster : 4:
-cluster : 4: training records count: 5480
-cluster : 4: validation records count: 984
-positiveDF count: 984
-validationDF count: 984
-+------+-----+-----+-------+----------+
-|uid   |mid  |label|cluster|prediction|
-+------+-----+-----+-------+----------+
-|2795.0|163.0|1.0  |4      |0.0       |
-|3295.0|12.0 |0.0  |4      |1.0       |
-|3100.0|9.0  |1.0  |4      |1.0       |
-|3212.0|13.0 |1.0  |4      |0.0       |
-|2741.0|34.0 |1.0  |4      |1.0       |
-|3747.0|43.0 |1.0  |4      |1.0       |
-|2687.0|169.0|1.0  |4      |0.0       |
-|3323.0|6.0  |1.0  |4      |1.0       |
-|3283.0|60.0 |1.0  |4      |1.0       |
-|2867.0|28.0 |0.0  |4      |1.0       |
-|3547.0|51.0 |1.0  |4      |1.0       |
-|3338.0|7.0  |1.0  |4      |1.0       |
-|2902.0|2.0  |1.0  |4      |1.0       |
-|3774.0|4.0  |1.0  |4      |1.0       |
-|2809.0|12.0 |1.0  |4      |1.0       |
-|2884.0|4.0  |1.0  |4      |1.0       |
-|2884.0|32.0 |1.0  |4      |1.0       |
-|3398.0|6.0  |1.0  |4      |1.0       |
-|3129.0|25.0 |1.0  |4      |1.0       |
-|2686.0|23.0 |1.0  |4      |1.0       |
-+------+-----+-----+-------+----------+
-only showing top 20 rows
-
-AUROC: 0.47142563470038024
-AUPRCs: 0.9070367163546751
-tp: 626
-fp: 110
-fn: 220
-recall: 0.7399527186761229
-precision: 0.8505434782608695
-label distribution:
-+-----+-----+
-|label|count|
-+-----+-----+
-|  0.0|  138|
-|  1.0|  846|
-+-----+-----+
-
-prediction distribution:
-+----------+-----+
-|prediction|count|
-+----------+-----+
-|       0.0|  248|
-|       1.0|  736|
-+----------+-----+
-
-cluster : 4:Train and Evaluate End
-total time: 278.6911308
+...
 ```
-
-**Free Software, Hell Yeah!**

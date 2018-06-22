@@ -15,6 +15,12 @@ object Utils {
     mOutput: Int = 100,
     learningRate: Double = 1e-3,
     learningRateDecay: Double = 1e-7,
+    rank: Int = 10,
+    brank: Int = 50,
+    regParam: Double = 0.01,
+    bregParam: Double = 0.20,
+    alpha: Double = 0.01,
+    balpha: Double = 0.15,
     debug: Boolean = false,
     saveModel: Boolean = false,
     randomSampling: Boolean = false,
@@ -51,6 +57,24 @@ object Utils {
     opt[Double]("learningRateDecay")
       .text("Learning Rate Decay")
       .action((x, c) => c.copy(learningRateDecay = x))
+    opt[Int]("rank")
+      .text("ALS rank")
+      .action((x, c) => c.copy(rank = x))
+    opt[Int]("brank")
+      .text("ALS benchmark Rank")
+      .action((x, c) => c.copy(brank = x))
+    opt[Double]("regParam")
+      .text("ALS regParam")
+      .action((x, c) => c.copy(regParam = x))
+    opt[Double]("bregParam")
+      .text("ALS benchmark regParam")
+      .action((x, c) => c.copy(bregParam = x))
+    opt[Double]("alpha")
+      .text("ALS alpha")
+      .action((x, c) => c.copy(alpha = x))
+    opt[Double]("balpha")
+      .text("ALS benchmark alpha")
+      .action((x, c) => c.copy(balpha = x))
     opt[Boolean]("debug")
       .text("turn on debug mode or not")
       .action((x, c) => c.copy(debug = x))

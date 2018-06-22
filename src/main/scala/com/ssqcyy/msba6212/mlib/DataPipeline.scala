@@ -3,8 +3,15 @@ package com.ssqcyy.msba6212.mlib
 import org.apache.log4j.{ Level, Logger }
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.feature.{ StringIndexer, StringIndexerModel }
-import org.apache.spark.sql.functions._
+import org.apache.spark.mllib.feature.StandardScaler
+import org.apache.spark.mllib.linalg._
+import org.apache.spark.sql.functions.{ col, _ }
 import org.apache.spark.sql.types.{ DoubleType, FloatType }
+import org.apache.spark.sql.{ DataFrame, Column, Row, SQLContext, SaveMode }
+import java.text.SimpleDateFormat
+import scala.collection.mutable.ArrayBuilder
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{ ArrayType, DoubleType, FloatType }
 import org.apache.spark.sql.{ DataFrame, SparkSession }
 import com.ssqcyy.msba6212.utils.Utils.AppParams
 
@@ -30,12 +37,14 @@ object DataPipeline {
   /**
    * @return DataFrame ("uid", "mid", "date")
    */
-  private[ssqcyy] def loadPublicCSV(spark: SparkSession,param: AppParams): DataFrame = {
+  private[ssqcyy] def loadPublicCSV(spark: SparkSession, param: AppParams): DataFrame = {
     val raw = spark.read
       .format("csv")
       .option("header", "true") //reading the headers
       .option("mode", "DROPMALFORMED")
       .csv(param.dataFilePath)
+      .dropDuplicates()
+      .na.fill(0)
 
     val dataDF = raw.select("Cardholder Last Name", "Cardholder First Initial", "Amount", "Vendor",
       "Transaction Date", "Merchant Category Code (MCC)")
@@ -65,11 +74,11 @@ object DataPipeline {
       .select("uid", "mid", "amount", "date")
       .withColumn("uid", col("uid") + 1)
       .withColumn("mid", col("mid") + 1)
-      .select("uid", "mid", "date")
+      .select("uid", "mid", "amount", "date")
   }
 
   private[ssqcyy] def mixNegativeAndCombineFeatures(
-    tDF: DataFrame,
+    tDF: DataFrame,rawDF:DataFrame,
     param: AppParams): DataFrame = {
 
     val positiveDF = tDF
@@ -89,11 +98,15 @@ object DataPipeline {
         invertNegativeSamples
       }
 
-    val combinedDF = getNegFunc(tDF, ulimit, mlimit)
+    var combinedDF = getNegFunc(tDF, ulimit, mlimit)
+    combinedDF = combinedDF.join(createUmTotalFrequencyDF(param, rawDF), Array("uid", "mid"), "left_outer").withColumnRenamed("count", "totalVisits").na.fill(0)
+    combinedDF = combinedDF.join(createUmSumDF(param, rawDF), Array("uid", "mid"), "left_outer").na.fill(0)
+    combinedDF = combinedDF.distinct()
     if (debug) {
       println(s"combinedDF count: ${combinedDF.count()}")
       combinedDF.show(5);
     }
+    
     combinedDF
   }
 
@@ -159,6 +172,45 @@ object DataPipeline {
 
     val resultDF = assembleDF.withColumn("features", scaleUDFWithoutFeatures($"uid", $"mid"))
     resultDF.select("uid", "mid", "label", "features").cache()
+  }
+
+  private[ssqcyy] def normFeatures(df: DataFrame, params: AppParams): DataFrame = {
+    val sqlContext = df.sqlContext
+
+    val cols = df.columns
+
+    val filteredDF = df.select(cols.map(col): _*)
+    if (params.debug) {
+      println("original features: ")
+      filteredDF.show(5)
+    }
+    import sqlContext.implicits._
+    val featureCols = filteredDF.columns.diff(Seq("uid", "mid", "label")).map(col).map(c => c.cast(DoubleType))
+    println("featureCols are " + featureCols.mkString(","));
+    val assembleFunc = udf { r: Row =>
+      val values = ArrayBuilder.make[Double]
+      r.toSeq.foreach(v => values += v.asInstanceOf[Double])
+      Vectors.dense(values.result())
+    }
+    val assembleDF = filteredDF.withColumn("assembled", assembleFunc(struct(featureCols: _*)))
+    val mllibVectorRDD = assembleDF.select("assembled").rdd.map(r => r.getAs[Vector](0))
+      val scalerModel = new StandardScaler(true, true).fit(mllibVectorRDD)
+      val scaleUDF = udf { (uid: Int, mid: Int, vec: Vector) =>
+        Array[Float](uid, mid) ++ scalerModel.transform(vec).toArray.map(_.toFloat)
+      }
+
+    val resultDF = assembleDF.withColumn("features", scaleUDF($"uid", $"mid", $"assembled"))
+    resultDF.select("uid", "mid", "label", "features").cache()
+  }
+
+  def createUmTotalFrequencyDF(params: AppParams, sourceDF: DataFrame): DataFrame = {
+    val umTotalFrequency = sourceDF.groupBy("uid", "mid").count()
+    umTotalFrequency
+  }
+
+  def createUmSumDF(params: AppParams, sourceDF: DataFrame): DataFrame = {
+    val umSum = sourceDF.groupBy("uid", "mid").agg(sum("amount").as("totalAmount"))
+    umSum
   }
 
 }

@@ -6,6 +6,7 @@ import scopt.OptionParser
 object Utils {
   val seperator = ","
   case class AppParams(
+    batchSize: Int =1000,
     maxEpoch: Int = 10,
     uOutput: Int = 200,
     trainingStart: Int = 20160101,
@@ -26,10 +27,13 @@ object Utils {
     randomSampling: Boolean = false,
     negRate: Double = 1.0,
     dataFilePath: String = "/home/msba6212/data/pcard.csv",
-    clusterParams: ClusterParams = ClusterParams(5, 30, 3))
+    clusterParams: ClusterParams = ClusterParams(2, 30, 3))
 
   val trainParser = new OptionParser[AppParams]("MSBA 6212 FINAL PROJECT") {
     head("AppParams:")
+    opt[Int]("batchSize")
+      .text("batch size for deep learning")
+      .action((x, c) => c.copy(batchSize = x))
     opt[Int]("maxEpoch")
       .text("max Epoch")
       .action((x, c) => c.copy(maxEpoch = x))

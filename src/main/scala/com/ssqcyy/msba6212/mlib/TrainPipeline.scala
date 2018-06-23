@@ -19,6 +19,7 @@ object TrainPipeline {
   def main(args: Array[String]): Unit = {
 
     Logger.getLogger("org").setLevel(Level.WARN)
+    Logger.getLogger("org.apache.spark.ml").setLevel(Level.INFO)
     val st = System.nanoTime()
 
     Utils.trainParser.parse(args, Utils.AppParams()).foreach { param =>
@@ -44,14 +45,14 @@ object TrainPipeline {
       val runTimes = param.clusterParams.runTimes
       import spark.implicits._
 
-      val dataDF = DataPipeline.loadPublicCSV(spark, param)
+      val dataDF = DataPipeline.loadPublicCSV(spark.sqlContext, param)
       val filterTrainingRawDF = dataDF
         .filter(s"date>=$trainingStart")
         .filter(s"date<=$trainingEnd")
         .drop("date").cache()
 
       val trainingRawDF = filterTrainingRawDF.groupBy("uid", "mid").count().withColumnRenamed("count", "label").cache()
-      val trainingDF = DataPipeline.mixNegativeAndCombineFeatures(trainingRawDF, filterTrainingRawDF, param)
+      val trainingDF = DataPipeline.mixNegativeAndCombineFeatures(trainingRawDF, filterTrainingRawDF, param,false)
       val trainingCount = trainingDF.count()
 
       val clusterTrainDF = DataPipeline.normFeatures(trainingDF, param)
@@ -78,7 +79,7 @@ object TrainPipeline {
 
       val validationRawDF = filterValidationRawDF.groupBy("uid", "mid").count().withColumnRenamed("count", "label").cache()
 
-      val validationDF = DataPipeline.mixNegativeAndCombineFeatures(validationRawDF, filterValidationRawDF, param)
+      val validationDF = DataPipeline.mixNegativeAndCombineFeatures(validationRawDF, filterValidationRawDF, param,false)
 
       val clusterValidationDF = DataPipeline.normFeatures(validationDF, param)
 

@@ -37,7 +37,7 @@ object DataPipeline {
   /**
    * @return DataFrame ("uid", "mid", "date")
    */
-  private[ssqcyy] def loadPublicCSV(spark: SparkSession, param: AppParams): DataFrame = {
+  private[ssqcyy] def loadPublicCSV(spark: SQLContext, param: AppParams): DataFrame = {
     val raw = spark.read
       .format("csv")
       .option("header", "true") //reading the headers
@@ -79,7 +79,7 @@ object DataPipeline {
 
   private[ssqcyy] def mixNegativeAndCombineFeatures(
     tDF: DataFrame,rawDF:DataFrame,
-    param: AppParams): DataFrame = {
+    param: AppParams,ifBigDL: Boolean): DataFrame = {
 
     val positiveDF = tDF
     val beforeMixCount = positiveDF.count()
@@ -88,7 +88,7 @@ object DataPipeline {
     println(s"positive samples count: $beforeMixCount")
     println(s"ulimit count: $ulimit")
     println(s"mlimit count: $mlimit")
-    val getNegFunc: (DataFrame, Int, Int) => DataFrame =
+    val getNegFunc: (DataFrame, Int, Int,Boolean) => DataFrame =
       // add param control to pick up sampling method
       if (randomSampling) {
         println("randomNegativeSamples")
@@ -98,7 +98,7 @@ object DataPipeline {
         invertNegativeSamples
       }
 
-    var combinedDF = getNegFunc(tDF, ulimit, mlimit)
+    var combinedDF = getNegFunc(tDF, ulimit, mlimit,ifBigDL)
     combinedDF = combinedDF.join(createUmTotalFrequencyDF(param, rawDF), Array("uid", "mid"), "left_outer").withColumnRenamed("count", "totalVisits").na.fill(0)
     combinedDF = combinedDF.join(createUmSumDF(param, rawDF), Array("uid", "mid"), "left_outer").na.fill(0)
     combinedDF = combinedDF.distinct()
@@ -116,7 +116,7 @@ object DataPipeline {
   private[ssqcyy] def invertNegativeSamples(
     trainingData: DataFrame,
     ulimit: Int,
-    mlimit: Int): DataFrame = {
+    mlimit: Int,ifBigDL: Boolean): DataFrame = {
     import trainingData.sparkSession.implicits._
     val sc = trainingData.sparkSession.sparkContext
     val all = sc.range(1, ulimit).map(_.toDouble).cartesian(sc.range(1, mlimit).map(_.toDouble))
@@ -126,10 +126,12 @@ object DataPipeline {
     }
 
     val negativeRDD = all.subtract(existing)
-    val negativeDF = negativeRDD.map {
+    var negativeDF = negativeRDD.map {
       case (uid, mid) =>
-        (uid, mid, 0L)
-    }.toDF("uid", "mid", "label")
+        (uid, mid)
+    }.toDF("uid", "mid")
+    
+    negativeDF = if(ifBigDL) negativeDF.withColumn("label", lit(2.0f)) else negativeDF.withColumn("label", lit(0.0f))
 
     val combinedDF = trainingData.union(negativeDF)
     require(combinedDF.count() == all.count(), s"combined: ${combinedDF.count()}. all ${all.count()}")
@@ -139,7 +141,7 @@ object DataPipeline {
   private[ssqcyy] def randomNegativeSamples(
     tDF: DataFrame,
     ulimit: Int,
-    mlimit: Int): DataFrame = {
+    mlimit: Int,ifBigDL: Boolean): DataFrame = {
     import tDF.sparkSession.implicits._
 
     val beforeMix = tDF.count()
@@ -152,11 +154,11 @@ object DataPipeline {
         iter.map { i =>
           val uid = Math.abs(ran.nextInt(ulimit)).toFloat + 1
           val mid = Math.abs(ran.nextInt(mlimit)).toFloat + 1
-          (uid, mid, 0f)
+          (uid, mid)
         }
-    }.distinct().toDF("uid", "mid", "label")
+    }.distinct().toDF("uid", "mid")
 
-    val removeDupDF = negativeIDDF.join(tDF, Seq("uid", "mid"), "leftanti")
+    val removeDupDF = if(ifBigDL) negativeIDDF.join(tDF, Seq("uid", "mid"), "leftanti").withColumn("label", lit(2.0f)) else negativeIDDF.join(tDF, Seq("uid", "mid"), "leftanti").withColumn("label", lit(0.0f))
     val combinedDF = removeDupDF.union(tDF)
     combinedDF
   }

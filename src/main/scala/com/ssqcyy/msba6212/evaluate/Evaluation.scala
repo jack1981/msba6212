@@ -14,7 +14,6 @@ object Evaluation {
     * userid, mid, label, prediction
    */
   def evaluate(evaluateDF: DataFrame): Unit = {
-    val topN = 20
     evaluateDF.cache()
 
     evaluateDF.orderBy(rand()).show(20, false)
@@ -42,28 +41,6 @@ object Evaluation {
     println("prediction distribution: ")
     evaluateDF.groupBy("prediction").count().show()
 
-    if(evaluateDF.columns.contains("prob")) {
-      val topNStat = evaluateDF.select("features", "label", "prob", "prediction").filter("prediction=1")
-        .rdd.map { case Row(feature: Seq[Float], label: Double, prob: Double, prediction: Double) =>
-        val uid = feature(0).toInt
-        val mid = feature(1).toInt
-        (uid, mid, label, prob, prediction)
-      }.groupBy(_._1).map { case (uid, iter) =>
-        val records = iter.toArray
-        val topNprob = records.sortBy(-_._4).take(topN).filter(_._5 == 1)
-        val correctTopNprob = topNprob.count(_._3 == 1)
-        (correctTopNprob, topNprob.length)
-      }.reduce((t1, t2) => (t1._1 + t2._1, t1._2 + t2._2))
-      val topNprecision = topNStat._1.toDouble / topNStat._2
-
-      println(s"$topN precision: $topNprecision")
-    }
-
-    require(evaluateDF.select(col("label").isin(0.0f, 1.0f)).rdd
-      .map(r => r.getBoolean(0)).collect().forall(t => t), "label should all in 0, 1")
-
-    require(evaluateDF.select(col("prediction").isin(0.0, 1.0)).rdd
-      .map(r => r.getBoolean(0)).collect().forall(t => t), "label should all in 0, 1")
     evaluateDF.unpersist()
   }
 
